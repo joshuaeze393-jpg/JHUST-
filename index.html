@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JHUST — Nigeria's Premium Marketplace</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0710; --bg2: #0f0b1a; --bg3: #130e22;
+    --surface: #1a1130; --surface2: #211540;
+    --border: rgba(140,80,255,0.15); --border2: rgba(140,80,255,0.3);
+    --purple: #7c3aed; --purple2: #9d5ff5; --purple3: #b47eff; --purple4: #c9a3ff;
+    --accent: #e040fb; --accent2: #ff6ef7;
+    --gold: #f5c542; --green: #22d3a5; --red: #ff4f6d;
+    --text: #f0eaff; --text2: #b8a9d9; --text3: #7a6a9a;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  #liquid-canvas {
+    position: fixed; inset: 0; z-index: 0;
+    pointer-events: none; opacity: 0.55;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 1;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; opacity: 0.4;
+  }
+  .app { position: relative; z-index: 2; }
+
+  /* NAVBAR */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 0 2.5rem; height: 68px;
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(10,7,16,0.72);
+    backdrop-filter: blur(22px) saturate(160%);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.7rem;
+    letter-spacing: -0.03em;
+    background: linear-gradient(135deg, var(--purple3), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    cursor: pointer;
+  }
+  .nav-logo span { -webkit-text-fill-color: var(--accent); }
+  .nav-links { display: flex; align-items: center; gap: 0.25rem; }
+  .nav-links a {
+    color: var(--text2); text-decoration: none; font-size: 0.88rem;
+    font-weight: 500; padding: 0.45rem 0.9rem; border-radius: 8px; transition: all 0.2s;
+  }
+  .nav-links a:hover { color: var(--text); background: var(--surface); }
+  .nav-right { display: flex; align-items: center; gap: 0.75rem; }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--purple), var(--accent));
+    border: none; color: white; font-family: 'DM Sans', sans-serif;
+    font-weight: 600; font-size: 0.88rem; padding: 0.5rem 1.25rem;
+    border-radius: 10px; cursor: pointer; transition: all 0.2s;
+    box-shadow: 0 4px 20px rgba(124,58,237,0.4);
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(124,58,237,0.55); }
+  .btn-ghost {
+    background: transparent; border: 1px solid var(--border2); color: var(--purple3);
+    font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 0.88rem;
+    padding: 0.5rem 1.1rem; border-radius: 10px; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-ghost:hover { background: rgba(124,58,237,0.1); border-color: var(--purple3); color: var(--text); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center;
+    padding: 8rem 2rem 4rem; position: relative;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: rgba(124,58,237,0.12); border: 1px solid var(--border2);
+    color: var(--purple3); font-size: 0.78rem; font-weight: 600;
+    padding: 0.35rem 0.85rem; border-radius: 100px; margin-bottom: 2rem;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    animation: fadeUp 0.6s ease both;
+  }
+  .hero-badge::before {
+    content: ''; width: 6px; height: 6px; background: var(--green);
+    border-radius: 50%; box-shadow: 0 0 8px var(--green); animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.6; transform:scale(0.85); } }
+  .hero h1 {
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: clamp(3rem, 7vw, 6.5rem); line-height: 0.95;
+    letter-spacing: -0.04em; margin-bottom: 1.5rem;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+  .hero h1 .line1 {
+    display: block;
+    background: linear-gradient(135deg, var(--text) 0%, var(--purple4) 60%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .hero h1 .line2 {
+    display: block;
+    background: linear-gradient(135deg, var(--purple2), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .hero p {
+    color: var(--text2); font-size: 1.15rem; max-width: 480px; line-height: 1.65;
+    margin-bottom: 2.5rem; font-weight: 300; animation: fadeUp 0.6s 0.2s ease both;
+  }
+  .hero-cta {
+    display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
+    animation: fadeUp 0.6s 0.3s ease both;
+  }
+  .btn-hero {
+    background: linear-gradient(135deg, var(--purple), var(--accent));
+    border: none; color: white; font-family: 'DM Sans', sans-serif;
+    font-weight: 600; font-size: 1rem; padding: 0.85rem 2rem; border-radius: 14px;
+    cursor: pointer; transition: all 0.25s;
+    box-shadow: 0 8px 32px rgba(124,58,237,0.45), 0 0 60px rgba(124,58,237,0.15);
+  }
+  .btn-hero:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(124,58,237,0.6); }
+  .btn-hero-outline {
+    background: transparent; border: 1.5px solid var(--border2); color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 1rem;
+    padding: 0.85rem 2rem; border-radius: 14px; cursor: pointer; transition: all 0.25s;
+    backdrop-filter: blur(8px);
+  }
+  .btn-hero-outline:hover { background: rgba(140,80,255,0.1); border-color: var(--purple3); }
+  .hero-stats {
+    display: flex; gap: 3rem; margin-top: 4rem; flex-wrap: wrap;
+    justify-content: center; animation: fadeUp 0.6s 0.4s ease both;
+  }
+  .hero-stat { text-align: center; }
+  .hero-stat .val {
+    font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 700;
+    background: linear-gradient(135deg, var(--purple3), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .hero-stat .lbl { color: var(--text3); font-size: 0.8rem; margin-top: 0.2rem; letter-spacing: 0.04em; }
+
+  /* AUTH SECTION */
+  .auth-section {
+    padding: 6rem 2rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .auth-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 28px;
+    padding: 3rem;
+    width: 100%; max-width: 460px;
+    position: relative;
+    overflow: hidden;
+  }
+  .auth-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--purple), var(--accent), var(--purple));
+    background-size: 200%;
+    animation: gradShift 3s linear infinite;
+  }
+  @keyframes gradShift { 0% { background-position:0%; } 100% { background-position:200%; } }
+  .auth-title {
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.9rem;
+    margin-bottom: 0.35rem;
+    background: linear-gradient(135deg, var(--text), var(--purple4));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .auth-sub { color: var(--text3); font-size: 0.88rem; margin-bottom: 2rem; }
+  .auth-tabs {
+    display: flex; gap: 0.5rem; margin-bottom: 1.75rem;
+    background: var(--bg2); border-radius: 12px; padding: 0.3rem;
+  }
+  .auth-tab {
+    flex: 1; background: none; border: none; color: var(--text3);
+    font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 0.88rem;
+    padding: 0.6rem; border-radius: 8px; cursor: pointer; transition: all 0.2s;
+  }
+  .auth-tab.active { background: var(--surface2); color: var(--text); }
+  .form-group { margin-bottom: 1.1rem; }
+  .form-label {
+    display: block; font-size: 0.8rem; font-weight: 600; color: var(--text2);
+    margin-bottom: 0.45rem; letter-spacing: 0.02em;
+  }
+  .form-input {
+    width: 100%; background: var(--bg2); border: 1px solid var(--border);
+    color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+    padding: 0.75rem 1rem; border-radius: 12px; outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .form-input::placeholder { color: var(--text3); }
+  .form-input:focus { border-color: var(--purple2); box-shadow: 0 0 0 3px rgba(124,58,237,0.15); }
+  .auth-btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--purple), var(--accent));
+    border: none; color: white; font-family: 'Syne', sans-serif;
+    font-weight: 700; font-size: 1rem; padding: 0.9rem; border-radius: 14px;
+    cursor: pointer; transition: all 0.25s; box-shadow: 0 6px 24px rgba(124,58,237,0.45);
+    margin-top: 0.5rem;
+  }
+  .auth-btn:hover { transform: translateY(-1px); box-shadow: 0 10px 30px rgba(124,58,237,0.6); }
+  .auth-divider {
+    display: flex; align-items: center; gap: 1rem;
+    margin: 1.25rem 0; color: var(--text3); font-size: 0.78rem;
+  }
+  .auth-divider::before, .auth-divider::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+  .social-btns { display: flex; gap: 0.75rem; }
+  .social-btn {
+    flex: 1; background: var(--bg2); border: 1px solid var(--border); color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 500;
+    padding: 0.65rem; border-radius: 10px; cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  }
+  .social-btn:hover { background: var(--surface2); border-color: var(--border2); }
+  .auth-forgot { text-align: right; margin-bottom: 1rem; }
+  .auth-forgot a { color: var(--purple3); font-size: 0.8rem; text-decoration: none; }
+  .auth-footer-text {
+    text-align: center; color: var(--text3); font-size: 0.8rem; margin-top: 1.25rem;
+  }
+  .auth-footer-text a { color: var(--purple3); text-decoration: none; }
+  .error-msg {
+    background: rgba(255,79,109,0.1); border: 1px solid rgba(255,79,109,0.3);
+    color: #ff4f6d; font-size: 0.82rem; padding: 0.6rem 1rem; border-radius: 8px;
+    margin-bottom: 1rem; display: none;
+  }
+  .success-msg {
+    background: rgba(34,211,165,0.1); border: 1px solid rgba(34,211,165,0.3);
+    color: var(--green); font-size: 0.82rem; padding: 0.6rem 1rem; border-radius: 8px;
+    margin-bottom: 1rem; display: none;
+  }
+  .input-icon-wrap { position: relative; }
+  .input-icon-wrap .toggle-pw {
+    position: absolute; right: 1rem; top: 50%; transform: translateY(-50%);
+    background: none; border: none; color: var(--text3); cursor: pointer; font-size: 0.85rem;
+  }
+
+  /* FEATURES */
+  .features-section { padding: 5rem 2rem; }
+  .container { max-width: 1100px; margin: 0 auto; }
+  .section-label {
+    font-size: 0.75rem; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--purple3); margin-bottom: 0.75rem;
+  }
+  .section-title {
+    font-family: 'Syne', sans-serif; font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+    font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 3rem;
+  }
+  .features-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;
+  }
+  .feat-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 1.5rem; transition: all 0.25s;
+  }
+  .feat-card:hover { border-color: var(--border2); transform: translateY(-3px); }
+  .feat-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; margin-bottom: 1rem;
+  }
+  .feat-card h3 { font-family: 'Syne',sans-serif; font-weight: 700; font-size: 0.95rem; margin-bottom: 0.4rem; }
+  .feat-card p { color: var(--text2); font-size: 0.82rem; line-height: 1.5; font-weight: 300; }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border); padding: 2rem;
+    text-align: center; color: var(--text3); font-size: 0.8rem;
+  }
+
+  @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--purple); }
+
+  /* LOADING overlay */
+  #loadingScreen {
+    position: fixed; inset: 0; background: var(--bg); z-index: 9999;
+    display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 1rem;
+    transition: opacity 0.4s;
+  }
+  .loading-logo {
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 2.5rem;
+    background: linear-gradient(135deg, var(--purple3), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .loading-bar {
+    width: 200px; height: 3px; background: var(--surface); border-radius: 2px; overflow: hidden;
+  }
+  .loading-fill {
+    height: 100%; background: linear-gradient(90deg, var(--purple), var(--accent));
+    border-radius: 2px; animation: loadFill 1.2s ease forwards;
+  }
+  @keyframes loadFill { from { width:0%; } to { width:100%; } }
+
+  @media(max-width:600px) {
+    nav { padding: 0 1.25rem; }
+    .nav-links { display: none; }
+    .auth-card { padding: 2rem 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<div id="loadingScreen">
+  <div class="loading-logo">JHUST<span style="-webkit-text-fill-color:var(--accent)">.</span></div>
+  <div class="loading-bar"><div class="loading-fill"></div></div>
+  <div style="color:var(--text3);font-size:0.8rem;">Loading marketplace…</div>
+</div>
+
+<canvas id="liquid-canvas"></canvas>
+
+<div class="app">
+  <nav>
+    <div class="nav-logo">JHUST<span>.</span></div>
+    <div class="nav-links">
+      <a href="#auth">Sign In</a>
+      <a href="#features">Features</a>
+    </div>
+    <div class="nav-right">
+      <button class="btn-ghost" onclick="goToMarketplace()">Browse Marketplace</button>
+      <button class="btn-primary" onclick="scrollToAuth()">Get Started</button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-badge">🇳🇬 Nigeria's #1 Premium Marketplace</div>
+    <h1>
+      <span class="line1">Buy. Sell.</span>
+      <span class="line2">Thrive.</span>
+    </h1>
+    <p>Join 50,000+ Nigerians buying and selling premium products with confidence. Secure payments, fast delivery, verified sellers.</p>
+    <div class="hero-cta">
+      <button class="btn-hero" onclick="scrollToAuth()">Start Shopping →</button>
+      <button class="btn-hero-outline" onclick="goToMarketplace()">Browse Without Login</button>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="val">50K+</div><div class="lbl">Active Buyers</div></div>
+      <div class="hero-stat"><div class="val">12K+</div><div class="lbl">Verified Sellers</div></div>
+      <div class="hero-stat"><div class="val">₦2B+</div><div class="lbl">Transactions</div></div>
+      <div class="hero-stat"><div class="val">4.9★</div><div class="lbl">Avg Rating</div></div>
+    </div>
+  </section>
+
+  <!-- AUTH -->
+  <section class="auth-section" id="auth">
+    <div class="auth-card">
+      <div class="auth-title">Welcome Back</div>
+      <div class="auth-sub" id="authSubText">Sign in to access your account, wishlist, and orders.</div>
+
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tabLogin" onclick="switchTab('login')">Sign In</button>
+        <button class="auth-tab" id="tabRegister" onclick="switchTab('register')">Create Account</button>
+      </div>
+
+      <div id="errorMsg" class="error-msg"></div>
+      <div id="successMsg" class="success-msg"></div>
+
+      <div id="nameField" class="form-group" style="display:none;">
+        <label class="form-label">Full Name</label>
+        <input class="form-input" id="authName" type="text" placeholder="e.g. Kelechi Obi">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input class="form-input" id="authEmail" type="email" placeholder="you@example.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <div class="input-icon-wrap">
+          <input class="form-input" id="authPassword" type="password" placeholder="Min. 6 characters" style="padding-right:3rem;">
+          <button class="toggle-pw" onclick="togglePw()" tabindex="-1">👁</button>
+        </div>
+      </div>
+      <div class="auth-forgot" id="forgotWrap">
+        <a href="#" onclick="forgotPassword()">Forgot password?</a>
+      </div>
+
+      <button class="auth-btn" id="authBtn" onclick="handleAuth()">Sign In →</button>
+
+      <div class="auth-divider">or continue with</div>
+      <div class="social-btns">
+        <button class="social-btn" onclick="socialAuth('Google')">🌐 Google</button>
+        <button class="social-btn" onclick="socialAuth('Facebook')">📘 Facebook</button>
+      </div>
+
+      <div class="auth-footer-text" id="authFooterText">
+        Don't have an account? <a href="#" onclick="switchTab('register')">Create one free</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features-section" id="features">
+    <div class="container">
+      <div class="section-label">Why JHUST?</div>
+      <div class="section-title">Everything you need to trade</div>
+      <div class="features-grid">
+        <div class="feat-card">
+          <div class="feat-icon" style="background:rgba(124,58,237,0.15);">🔒</div>
+          <h3>Secure Payments</h3>
+          <p>Escrow-protected transactions. Your money is safe until you confirm delivery.</p>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon" style="background:rgba(34,211,165,0.15);">🚚</div>
+          <h3>Fast Delivery</h3>
+          <p>Door-to-door delivery across all Nigerian states within 24–72 hours.</p>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon" style="background:rgba(245,197,66,0.15);">⭐</div>
+          <h3>Verified Sellers</h3>
+          <p>Every seller goes through identity verification before listing products.</p>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon" style="background:rgba(224,64,251,0.15);">💳</div>
+          <h3>Flexible Payments</h3>
+          <p>Pay with bank card, wallet, or cash on delivery. Your preference.</p>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon" style="background:rgba(255,110,247,0.15);">↩️</div>
+          <h3>Easy Returns</h3>
+          <p>14-day hassle-free returns on all eligible items. No questions asked.</p>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon" style="background:rgba(124,58,237,0.12);">📊</div>
+          <h3>Seller Analytics</h3>
+          <p>Real-time dashboard to track views, sales, and revenue growth.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2026 JHUST Marketplace · Made in Nigeria 🇳🇬 · All rights reserved.</p>
+  </footer>
+</div>
+
+<script>
+// ── STORAGE HELPERS ──
+const STORAGE_KEY = 'jhust_users';
+
+function getUsers() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch { return {}; }
+}
+
+function saveUsers(users) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(users)); } catch {}
+}
+
+function getSession() {
+  try {
+    const raw = sessionStorage.getItem('jhust_session');
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+function setSession(user) {
+  try { sessionStorage.setItem('jhust_session', JSON.stringify(user)); } catch {}
+}
+
+// ── AUTH MODE ──
+let authMode = 'login';
+let pwVisible = false;
+
+function switchTab(mode) {
+  authMode = mode;
+  const loginTab = document.getElementById('tabLogin');
+  const registerTab = document.getElementById('tabRegister');
+  const nameField = document.getElementById('nameField');
+  const forgotWrap = document.getElementById('forgotWrap');
+  const authBtn = document.getElementById('authBtn');
+  const authSubText = document.getElementById('authSubText');
+  const footerText = document.getElementById('authFooterText');
+
+  clearMessages();
+
+  if (mode === 'register') {
+    loginTab.classList.remove('active'); registerTab.classList.add('active');
+    nameField.style.display = 'block'; forgotWrap.style.display = 'none';
+    authBtn.textContent = 'Create Account →';
+    authSubText.textContent = 'Create your free account to start buying and selling.';
+    footerText.innerHTML = 'Already have an account? <a href="#" onclick="switchTab(\'login\')">Sign in</a>';
+  } else {
+    registerTab.classList.remove('active'); loginTab.classList.add('active');
+    nameField.style.display = 'none'; forgotWrap.style.display = 'block';
+    authBtn.textContent = 'Sign In →';
+    authSubText.textContent = 'Sign in to access your account, wishlist, and orders.';
+    footerText.innerHTML = 'Don\'t have an account? <a href="#" onclick="switchTab(\'register\')">Create one free</a>';
+  }
+}
+
+function showError(msg) {
+  const el = document.getElementById('errorMsg');
+  el.textContent = msg; el.style.display = 'block';
+  document.getElementById('successMsg').style.display = 'none';
+}
+
+function showSuccess(msg) {
+  const el = document.getElementById('successMsg');
+  el.textContent = msg; el.style.display = 'block';
+  document.getElementById('errorMsg').style.display = 'none';
+}
+
+function clearMessages() {
+  document.getElementById('errorMsg').style.display = 'none';
+  document.getElementById('successMsg').style.display = 'none';
+}
+
+function togglePw() {
+  pwVisible = !pwVisible;
+  document.getElementById('authPassword').type = pwVisible ? 'text' : 'password';
+}
+
+function forgotPassword() {
+  const email = document.getElementById('authEmail').value.trim();
+  if (!email) { showError('Enter your email address first.'); return; }
+  showSuccess(`Password reset link sent to ${email}. Check your inbox!`);
+}
+
+function handleAuth() {
+  const email = document.getElementById('authEmail').value.trim().toLowerCase();
+  const password = document.getElementById('authPassword').value;
+  const name = document.getElementById('authName') ? document.getElementById('authName').value.trim() : '';
+
+  clearMessages();
+
+  if (!email || !password) { showError('Please fill in all required fields.'); return; }
+  if (!email.includes('@')) { showError('Please enter a valid email address.'); return; }
+  if (password.length < 6) { showError('Password must be at least 6 characters.'); return; }
+
+  const users = getUsers();
+
+  if (authMode === 'register') {
+    if (!name) { showError('Please enter your full name.'); return; }
+    if (users[email]) { showError('An account with this email already exists. Sign in instead.'); return; }
+
+    const newUser = {
+      email, name, password,
+      avatar: name.charAt(0).toUpperCase(),
+      joinDate: new Date().toISOString(),
+      wallet: 500000,
+      orders: [], wishlist: [], cart: [], myListings: []
+    };
+    users[email] = newUser;
+    saveUsers(users);
+    setSession({ email, name, avatar: newUser.avatar });
+    showSuccess('Account created! Redirecting to marketplace…');
+    setTimeout(goToMarketplace, 1200);
+
+  } else {
+    const user = users[email];
+    if (!user) { showError('No account found with this email. Create one!'); return; }
+    if (user.password !== password) { showError('Incorrect password. Please try again.'); return; }
+
+    setSession({ email, name: user.name, avatar: user.avatar });
+    showSuccess(`Welcome back, ${user.name}! Redirecting…`);
+    setTimeout(goToMarketplace, 1000);
+  }
+}
+
+function socialAuth(provider) {
+  const email = `${provider.toLowerCase()}_user_${Date.now()}@jhust.ng`;
+  const name = `${provider} User`;
+  const users = getUsers();
+  if (!users[email]) {
+    users[email] = {
+      email, name, avatar: provider.charAt(0),
+      joinDate: new Date().toISOString(),
+      wallet: 500000,
+      orders: [], wishlist: [], cart: [], myListings: []
+    };
+    saveUsers(users);
+  }
+  setSession({ email, name, avatar: provider.charAt(0) });
+  showSuccess(`Connected with ${provider}! Redirecting…`);
+  setTimeout(goToMarketplace, 1000);
+}
+
+function goToMarketplace() {
+  window.location.href = 'marketplace.html';
+}
+
+function scrollToAuth() {
+  document.getElementById('auth').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ── AUTO-REDIRECT IF ALREADY LOGGED IN ──
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    const screen = document.getElementById('loadingScreen');
+    screen.style.opacity = '0';
+    setTimeout(() => screen.style.display = 'none', 400);
+  }, 1400);
+
+  const session = getSession();
+  if (session) {
+    // Already logged in, go straight to marketplace
+    goToMarketplace();
+  }
+});
+
+// ── LIQUID CANVAS ──
+const canvas = document.getElementById('liquid-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, blobs;
+
+function initCanvas() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+  blobs = Array.from({length: 6}, (_, i) => ({
+    x: Math.random() * W, y: Math.random() * H,
+    r: 180 + Math.random() * 220,
+    vx: (Math.random() - 0.5) * 0.6, vy: (Math.random() - 0.5) * 0.6,
+    hue: i % 2 === 0 ? [124, 58, 237] : [224, 64, 251],
+    phase: Math.random() * Math.PI * 2
+  }));
+}
+
+function animateLiquid(t) {
+  requestAnimationFrame(animateLiquid);
+  ctx.clearRect(0, 0, W, H);
+  blobs.forEach(b => {
+    b.x += b.vx + Math.sin(t * 0.0004 + b.phase) * 0.4;
+    b.y += b.vy + Math.cos(t * 0.0003 + b.phase) * 0.35;
+    if (b.x < -b.r) b.x = W + b.r;
+    if (b.x > W + b.r) b.x = -b.r;
+    if (b.y < -b.r) b.y = H + b.r;
+    if (b.y > H + b.r) b.y = -b.r;
+    const g = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
+    const [r, g2, bl] = b.hue;
+    g.addColorStop(0, `rgba(${r},${g2},${bl},0.22)`);
+    g.addColorStop(0.5, `rgba(${r},${g2},${bl},0.08)`);
+    g.addColorStop(1, `rgba(${r},${g2},${bl},0)`);
+    ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+    ctx.fillStyle = g; ctx.fill();
+  });
+}
+window.addEventListener('resize', initCanvas);
+initCanvas();
+requestAnimationFrame(animateLiquid);
+
+// Press Enter to submit
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') handleAuth();
+});
+</script>
+</body>
+</html>
