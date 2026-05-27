@@ -1302,12 +1302,111 @@ function switchMode(mode){
 }
 
 // ─── UTILS ───────────────────────────────────────────────────
-function scrollToTop(){window.scrollTo({top:0,behavior:'smooth'});}
-function scrollToMarket(){document.getElementById('marketplace').scrollIntoView({behavior:'smooth'});}
-function toggleMobileDrawer(){document.getElementById('mobileDrawer').classList.toggle('open');}
-
-// ─── START ───────────────────────────────────────────────────
-window.onload=initApp;
+  function scrollToTop(){ window.scrollTo({top:0, behavior:'smooth'}); }
+  function scrollToMarket(){ document.getElementById('marketplace').scrollIntoView({behavior:'smooth'}); }
+  function toggleMobileDrawer(){ document.getElementById('mobileDrawer').classList.toggle('open'); }
 </script>
+
+<script type="module">
+  // 1. Import Firebase Core and the required Firestore Database functions (Notice getDocs is here!)
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  // 2. Your web app's official configuration keys
+  const firebaseConfig = {
+    apiKey: "AIzaSyC1byQ32a60_pIn4e5a0stXHcYEIouVDh0",
+    authDomain: "jhust-marketplace.firebaseapp.com",
+    projectId: "jhust-marketplace",
+    storageBucket: "jhust-marketplace.firebasestorage.app",
+    messagingSenderId: "783696192080",
+    appId: "1:783696192080:web:98b0f0cbf61af2f5b76755",
+    measurementId: "G-ZHV4NMEQX7"
+  };
+
+  // 3. Connect your website to the cloud database
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  console.log("Firebase and Firestore are successfully connected!");
+
+  // --- ATTACH FUNCTION TO THE PUBLISH BUTTON ---
+  window.submitListing = async function() {
+    console.log("Publish Listing button clicked!");
+
+    // Grab values from your exact HTML IDs
+    const priceVal = document.getElementById("pPrice")?.value || "";
+    const stockVal = document.getElementById("pQty")?.value || "";
+    const descVal = document.getElementById("pDesc")?.value || "";
+    const locationVal = document.getElementById("pLocation")?.value || "";
+    const phoneVal = document.getElementById("pPhone")?.value || "";
+
+    // Validate required fields
+    if (!priceVal || !descVal || !phoneVal) {
+      alert("Please fill in all required fields: Price, Description, and Phone Number.");
+      return;
+    }
+
+    try {
+      // Send data to your Cloud Firestore "products" collection
+      const docRef = await addDoc(collection(db, "products"), {
+        price: priceVal,
+        stock: stockVal,
+        description: descVal,
+        location: locationVal,
+        phoneNumber: phoneVal,
+        createdAt: new Date()
+      });
+
+      alert("🎉 Listing published successfully to the cloud!");
+      console.log("Saved Document ID: ", docRef.id);
+
+      // Clear out the input fields after a successful upload
+      const fields = ["pPrice", "pQty", "pDesc", "pLocation", "pPhone"];
+      fields.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+          if (element.tagName === "INPUT" || element.tagName === "TEXTAREA") {
+            element.value = id === "pQty" ? "1" : "";
+          } else {
+            element.innerText = "";
+          }
+        }
+      });
+
+      // Automatically refresh the counter on screen right after uploading!
+      window.loadMyListings();
+
+    } catch (error) {
+      console.error("Firebase Error: ", error);
+      alert("Upload failed. Open your browser console to view the error details.");
+    }
+  };
+
+  // --- FETCH AND DISPLAY LISTINGS COUNT FROM THE CLOUD ---
+  window.loadMyListings = async function() {
+    console.log("Fetching active listings from Firestore...");
+    try {
+      const querySnapshot = await getDocs(collection(db, "products"));
+      const totalItems = querySnapshot.size; // Counts total items in your cloud database
+      
+      console.log(`Found ${totalItems} items in database.`);
+      
+      // Update the "0 items" text indicator dynamically in your HTML layout
+      const countElement = document.getElementById("itemCount");
+      if (countElement) {
+        countElement.innerText = `${totalItems} items`;
+      }
+
+    } catch (error) {
+      console.error("Error fetching listings: ", error);
+    }
+  };
+
+  // Automatically run the counter function whenever the page loads
+  window.addEventListener("DOMContentLoaded", () => {
+    window.loadMyListings();
+  });
+</script>
+
 </body>
 </html>
